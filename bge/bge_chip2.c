@@ -1891,6 +1891,8 @@ bge_nvmem_id(bge_t *bgep)
 	case DEVICE_ID_5705C:
 	case DEVICE_ID_5705_2:
 	case DEVICE_ID_5717:
+	case DEVICE_ID_57762:
+	case DEVICE_ID_57766:
 	case DEVICE_ID_5718:
 	case DEVICE_ID_5724:
 	case DEVICE_ID_57780:
@@ -2021,10 +2023,16 @@ bge_chip_id_init(bge_t *bgep)
 
 	switch (cidp->device) {
 	case DEVICE_ID_5717:
+	case DEVICE_ID_57762:
+	case DEVICE_ID_57766:
 	case DEVICE_ID_5718:
 	case DEVICE_ID_5724:
 		if (cidp->device == DEVICE_ID_5717)
 			cidp->chip_label = 5717;
+		else if (cidp->device == DEVICE_ID_57762)
+			cidp->chip_label = 57762;
+		else if (cidp->device == DEVICE_ID_57766)
+			cidp->chip_label = 57766;
 		else if (cidp->device == DEVICE_ID_5718)
 			cidp->chip_label = 5718;
 		else
