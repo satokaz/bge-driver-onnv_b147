@@ -98,6 +98,8 @@ extern "C" {
 #define	DEVICE_ID_5906			0x1712
 #define	DEVICE_ID_5906M			0x1713
 #define	DEVICE_ID_57780			0x1692
+#define DEVICE_ID_57762         0x1682  /* Apple Thunderbolt Gigabit Ethernet */
+#define DEVICE_ID_57766         0x1686  /* Apple Mac mini Late 2012 onboard Ethernet */
 
 #define	REVISION_ID_5700_B0		0x10
 #define	REVISION_ID_5700_B2		0x12
@@ -189,7 +191,9 @@ extern "C" {
 #define	DEVICE_5717_SERIES_CHIPSETS(bgep) \
 		(bgep->chipid.device == DEVICE_ID_5717) ||\
 		(bgep->chipid.device == DEVICE_ID_5718) ||\
-		(bgep->chipid.device == DEVICE_ID_5724)
+		(bgep->chipid.device == DEVICE_ID_5724) ||\
+		(bgep->chipid.device == DEVICE_ID_57762) ||\
+		(bgep->chipid.device == DEVICE_ID_57766)
 
 #define	DEVICE_5723_SERIES_CHIPSETS(bgep) \
 		((bgep->chipid.device == DEVICE_ID_5723) ||\
