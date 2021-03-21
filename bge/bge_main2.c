@@ -1426,8 +1426,20 @@ bge_unicst_find(bge_t *bgep, const uint8_t *mac_addr)
  * Programs the classifier to start steering packets matching 'mac_addr' to the
  * specified ring 'arg'.
  */
+
+/*
+ * mflags は、SR-IOV 関連で追加? 使えないので気にしなくてよいかな・・・
+ * 
+ * mac_group_info(9E)
+ * http://docs.oracle.com/cd/E26502_01/html/E29045/mgi-addmac-9e.html#REFMAN9Emgi-addmac-9e
+ * The flags associated with the programming of the specified MAC address. 
+ * Currently, the flag that can be specified is MAC_GROUP_PRIMARY_ADDRESS. 
+ * This enables a SRI-OV capable driver to understand that the MAC address being programmed is
+ * the primary address for the VF associated with this ring group.
+*/
+
 static int
-bge_addmac(void *arg, const uint8_t *mac_addr)
+bge_addmac(void *arg, const uint8_t *mac_addr, uint64_t mflags)
 {
 	recv_ring_t *rrp = (recv_ring_t *)arg;
 	bge_t		*bgep = rrp->bgep;
@@ -1579,8 +1591,16 @@ bge_remmac(void *arg, const uint8_t *mac_addr)
 	return (0);
 }
 
+/*
+ * mac_intr_handle_t (sys/mac.h で定義) が廃止?になって mac_ring_driver_t になった。
+ * S11.1 の /usr/include/sys/mac.h には下記の定義
+ * typedef struct __mac_ring_driver *mac_ring_driver_t;
+ * typedef int (*mac_intr_enable_t)(mac_ring_driver_t);
+ * typedef int (*mac_intr_disable_t)(mac_ring_driver_t);
+*/
+
 static int
-bge_flag_intr_enable(mac_intr_handle_t ih)
+bge_flag_intr_enable(mac_ring_driver_t ih)
 {
 	recv_ring_t *rrp = (recv_ring_t *)ih;
 	bge_t *bgep = rrp->bgep;
@@ -1593,7 +1613,7 @@ bge_flag_intr_enable(mac_intr_handle_t ih)
 }
 
 static int
-bge_flag_intr_disable(mac_intr_handle_t ih)
+bge_flag_intr_disable(mac_ring_driver_t ih)
 {
 	recv_ring_t *rrp = (recv_ring_t *)ih;
 	bge_t *bgep = rrp->bgep;
@@ -1645,7 +1665,11 @@ bge_fill_ring(void *arg, mac_ring_type_t rtype, const int rg_index,
 		infop->mri_stat = bge_rx_ring_stat;
 
 		mintr = &infop->mri_intr;
-		mintr->mi_handle = (mac_intr_handle_t)rx_ring;
+/* 
+ * s11.1 では、mi_handle がなくなっているため削除
+ * 
+ * mintr->mi_handle = (mac_intr_handle_t)rx_ring;
+*/
 		mintr->mi_enable = bge_flag_intr_enable;
 		mintr->mi_disable = bge_flag_intr_disable;
 
@@ -1709,6 +1733,15 @@ bge_m_getcapab(void *arg, mac_capab_t cap, void *cap_data)
 	}
 	case MAC_CAPAB_RINGS: {
 		mac_capab_rings_t *cap_rings = cap_data;
+
+/* Writing Device driver: 
+ * GLDv3 ネットワークデバイスドライバフレームワーク 
+ * http://docs.oracle.com/cd/E37932_01/html/E36755/gkbnv.html#glnfl /* > MAC_CAPAB_RINGS 機能
+ * mr_version
+ *   MAC_RINGS_VERSION_1 に設定する必要があります。
+ * なので、つっこんでみた
+*/
+		cap_rings->mr_version = MAC_RINGS_VERSION_1;
 
 		/* Temporarily disable multiple tx rings. */
 		if (cap_rings->mr_type != MAC_RING_TYPE_RX)
@@ -3492,7 +3525,11 @@ bge_attach(dev_info_t *devinfo, ddi_attach_cmd_t cmd)
 	macp->m_max_sdu = cidp->ethmax_size - sizeof (struct ether_header);
 	macp->m_margin = VLAN_TAGSZ;
 	macp->m_priv_props = bge_priv_prop;
-	macp->m_v12n = MAC_VIRT_LEVEL1;
+
+/* s11.1 では、m_v12n と MAC_VIRT_LEVEL1 がなくなっているので削除
+ *
+ * macp->m_v12n = MAC_VIRT_LEVEL1;
+*/
 
 	/*
 	 * Finally, we're ready to register ourselves with the MAC layer

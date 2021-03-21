@@ -1182,7 +1182,14 @@ int bge_chip_reset(bge_t *bgep, boolean_t enable_dma);
 int bge_chip_sync(bge_t *bgep);
 #endif
 void bge_chip_blank(void *arg, time_t ticks, uint_t count, int flag);
-extern mblk_t *bge_poll_ring(void *, int);
+
+/*
+ * Solaris 11.1 以降、/usr/include/sys/は、mac_provider.h で mac_ring_poll_t の
+ * 変更により、bge_poll_ring の引数が 3 つになったので修正
+*/
+
+extern mblk_t *bge_poll_ring(void *, int, int);
+
 uint_t bge_chip_factotum(caddr_t arg);
 void bge_chip_cyclic(void *arg);
 enum ioc_reply bge_chip_ioctl(bge_t *bgep, queue_t *wq, mblk_t *mp,
